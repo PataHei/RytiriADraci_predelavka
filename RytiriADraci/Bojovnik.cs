@@ -13,11 +13,6 @@ namespace RytiriADraci
         public int PocetZivotu {
             get 
             {
-                if (pocetZivotu == 0)
-                {
-                    Console.WriteLine($"{Jmeno} je mrtev");
-                }
-
                 return pocetZivotu;
             }
             set 
@@ -115,7 +110,7 @@ namespace RytiriADraci
         /// </summary>
         /// <param name="jmeno">pojmenuj si rytire</param>
         /// <param name="pocetZivotu">int</param>
-        public Bojovnik(string jmeno, int pocetZivotu)
+        public Bojovnik(string jmeno)
             :this()
         {
             Jmeno = jmeno;
@@ -202,7 +197,7 @@ namespace RytiriADraci
 
             if (PocetZivotu <= 0)
             {
-                //Console.WriteLine(Jmeno + ": Jsem poražen ...");
+                Console.WriteLine(Jmeno + ": Jsem poražen ...");
                 PocetZivotu = 0;
 
             }

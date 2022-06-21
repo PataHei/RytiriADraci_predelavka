@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RytiriADraci
 {
-    class Souboj
+    class Souboj:IDisposable
     {
         //bojovnici
         Bojovnik utocnik;
@@ -21,9 +21,7 @@ namespace RytiriADraci
             napadenyZivotyPredUtokem = napadeny.PocetZivotu;
             velikostUtoku = 0;
         }
-        
-
-                    
+                   
         /// <summary>
         /// Metoda kde se provede utok utocnika na napadeneho. Zapocte se velikost zasahu, ktery napadeny dostane. Vysledek se zapise v konzoli
         /// </summary>
@@ -35,11 +33,11 @@ namespace RytiriADraci
             budeProtiUtok = napadeny.BudeProtiUtok(velikostUtoku);
         }
 
-        ~Souboj()
+        public void Dispose()
         {
             Console.WriteLine("Konec kola souboje............................................");
+            //throw new NotImplementedException();
         }
-
 
     }
     

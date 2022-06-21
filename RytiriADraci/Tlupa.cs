@@ -10,7 +10,9 @@ namespace RytiriADraci
     {
         Bojovnik[] bojovnici;
         public int PocetZivychBojovniku;
+        public int AktivniBojovnik; //bojovnik, ktery prave bojuje
         Random kostka;
+        public string Jmeno;
 
         //KONSTRUKTORY
 
@@ -19,18 +21,20 @@ namespace RytiriADraci
         /// </summary>
         /// <param name="pocetBojovniku"></param>
 
-        public Tlupa(int pocetBojovniku)
+        public Tlupa(int pocetBojovniku, string jmeno)
         {
             bojovnici = new Bojovnik[pocetBojovniku];
             PocetZivychBojovniku = pocetBojovniku;
             kostka = new Random();
+            AktivniBojovnik = VyberBojovnika();
+            Jmeno = jmeno;
 
         }
 
         /// <summary>
         /// Zakladni tlupa tri bojovniku
         /// </summary>
-        public Tlupa() : this(3)
+        public Tlupa() : this(3, "zakladni tlupa")
         { }
 
         //METODY
@@ -67,16 +71,19 @@ namespace RytiriADraci
         public void OdeberBojovnika(int index)
         {
             bojovnici[index] = null;
-            
             return;
         }
+
         /// <summary>
         /// Seradi pole bojovnici podle poctu zivotu a spocita kolik zbylo zivich bojovniku
         /// </summary>
         void ZrevidujZiveBojovniky()
         {
-            bojovnici = bojovnici.OrderBy(bojovnik => bojovnik.PocetZivotu).ToArray(); //seradi bojovniky podle zivotu
-            PocetZivychBojovniku = bojovnici.Where(bojovnik => bojovnik != null).Count(); //spocte zive bojovniky
+            PocetZivychBojovniku = bojovnici.Where(bojovnik => bojovnik != null).Count();
+            Bojovnik[] tlupaZivych = bojovnici.Where(bojovnik => bojovnik != null).ToArray();
+            tlupaZivych.OrderBy(tlupaZivych => tlupaZivych.PocetZivotu).ToArray();
+            bojovnici = tlupaZivych; //seradi bojovniky podle zivotu
+
         }
 
         /// <summary>
@@ -87,12 +94,8 @@ namespace RytiriADraci
         {
             if (!bojovnici[i_bojovnik].MuzuBojovat())
             {
-                //Console.WriteLine("Drak je mrtev!!!") - uz dela get PocetZivotu;
-
                 OdeberBojovnika(i_bojovnik);
                 ZrevidujZiveBojovniky();
-                //UkonciHruKdyzVymreTlupa(tlupaDraku);
-
             }
         }
 
