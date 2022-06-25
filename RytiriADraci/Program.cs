@@ -121,7 +121,7 @@ namespace RytiriADraci
                 using (Souboj souboj = new Souboj(dvojiceBojovniku[0], dvojiceBojovniku[1]))
                 {
                     int pocetUtoku;
-                    pocetUtoku = SpoctiPocetUtoku(dvojiceBojovniku, provedeSeProtiutok);
+                    pocetUtoku = SpoctiPocetUtoku(dvojiceBojovniku, ref provedeSeProtiutok);
 
                     for (int i = 0; i < pocetUtoku; i++)
                     {
@@ -296,14 +296,14 @@ namespace RytiriADraci
             return provedeSeProtiutok;
         }
 
-        private static int SpoctiPocetUtoku(Bojovnik[] dvojiceBojovniku, bool provedeSeProtiutok)
+        private static int SpoctiPocetUtoku(Bojovnik[] dvojiceBojovniku, ref bool provedeSeProtiutok)
         {
             int pocetUtoku;
             if (provedeSeProtiutok) //napadena strana z minuleho kola ma dva utoky pokud ma provedeSeProtiutok true
             {
                 Console.WriteLine($"Napadeny bojovnik {dvojiceBojovniku[0].Jmeno} vraci uder. Bude útočit dvakrát.");
                 pocetUtoku = 2;
-                provedeSeProtiutok = false;
+                provedeSeProtiutok = false; //napadeny nema narok na protiutok, pokud zrovna je napaden pri protiutoku
             }
             else //bez protiutoku provede se jen jeden utok
             {
