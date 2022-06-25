@@ -14,6 +14,7 @@ namespace RytiriADraci
         int napadenyZivotyPredUtokem;
         int velikostUtoku;
 
+
         public Souboj(Bojovnik utocnik, Bojovnik napadeny)
         {
             this.utocnik = utocnik;
@@ -30,12 +31,13 @@ namespace RytiriADraci
             velikostUtoku = utocnik.Utoc(napadeny); //provede se zapas utocnik -> napadeny
             napadeny.Zasazen(velikostUtoku);
             utocnik.VypisEffektUtoku(velikostUtoku, napadenyZivotyPredUtokem, napadeny);
-            budeProtiUtok = napadeny.BudeProtiUtok(velikostUtoku);
+            budeProtiUtok = napadeny.JeSchopenProtiutoku(velikostUtoku);
         }
 
+        
         public void Dispose()
         {
-            Console.WriteLine("Konec kola souboje............................................");
+            Console.WriteLine("Konec souboje............................................");
             //throw new NotImplementedException();
         }
 

@@ -93,9 +93,12 @@ namespace RytiriADraci
 
             tlupaRytiru.PredstavClenyTlupy();
 
-            //dvojice bojovych tlup: bojoveTlupy[0] = utocnik, bojoveTlupy[1] = napadeny
-            Tlupa[] bojoveTlupy = new Tlupa[2] { tlupaDraku, tlupaRytiru }; 
+            //dvojice az n/tice bojovych tlup
+            Tlupa[] bojoveTlupy = new Tlupa[2] { tlupaDraku, tlupaRytiru };
             //_______________________________________________________________________
+            Console.WriteLine("============================================================= \n" +
+                "" );
+
 
             //Rozlosovani pocatecniho souboje
             int kteraTlupaJeNaRadeSUtokem = LosujKteraTlupaZacina(); // drzi informaci o tom ktera ze dvou tlup bojuje
@@ -107,136 +110,208 @@ namespace RytiriADraci
 
             //parametry k boji
             bool provedeSeProtiutok = false;
-
+            bool konec = false;
             int pocetKol = 0;
             //cyklus SOUBOJ
-            while (true)
-
+            while (!konec)
             {
                 pocetKol += 1;
                 Console.WriteLine($"Kolo {pocetKol}.");
                 //vytvori se instance souboje
                 using (Souboj souboj = new Souboj(dvojiceBojovniku[0], dvojiceBojovniku[1]))
                 {
-                    souboj.ProvedUtokAInformujOvysledku(out provedeSeProtiutok);
-                    int[] tlupyCoSeBrani = KteraTlupaSeBrani();
-                    //redukuje napadenou tlupu o mrtve
-                    bojoveTlupy[tlupyCoSeBrani[0]].RedukujTlupuOmrtve(bojoveTlupy[tlupyCoSeBrani[0]].AktivniBojovnik);
-                    if (UkonciHruKdyzVymreNejakaTlupa(bojoveTlupy))
+                    int pocetUtoku;
+                    pocetUtoku = SpoctiPocetUtoku(dvojiceBojovniku, provedeSeProtiutok);
+
+                    for (int i = 0; i < pocetUtoku; i++)
                     {
-                        break;
+                        souboj.ProvedUtokAInformujOvysledku(out provedeSeProtiutok);
+                        provedeSeProtiutok = OverNarokNaProtiutokPodleTypuNapadeni(provedeSeProtiutok, pocetUtoku, i);
+
+                        int[] tlupyCoSeBrani = KteraTlupaSeBrani();
+                        //redukuje napadenou tlupu o mrtve a posila nahradniky
+                        bojoveTlupy[tlupyCoSeBrani[0]].RedukujTlupuOmrtve(bojoveTlupy[tlupyCoSeBrani[0]].AktivniBojovnik);
+
+                        //pokud pri utoku nejaka tlupa vymre je konec hry
+                        if (VymrelaTlupaSbojoveDvojiceTlup())
+                        {
+                            konec = true;
+                            goto End;
+                        }
+
+                        //napadeny bojovnik se znovu losuje
+                        bojoveTlupy[1].AktivniBojovnik = bojoveTlupy[1].VyberBojovnika();
+                        dvojiceBojovniku[1] = bojoveTlupy[1].Bojovnici[bojoveTlupy[1].AktivniBojovnik];
                     }
+
                     //prohodi roli utocnik a napadeny podle pravidel
                     ZmenIndexTlupyNarade();
-                    LosujBojovouDvojiciZtlup(bojoveTlupy);
+
+                    //pokud neprobehne protiutok provede se losovani bojovniku
+                    if (!provedeSeProtiutok)
+                    {
+                        LosujBojovouNticiZtlup();
+                    }
+
                     dvojiceBojovniku = NastavUtocnikaAObrance();
+
                 }
-   
+
+            }
+            End:
+                Console.WriteLine("Konec hry");
+
+            /// <summary>
+            /// Metoda vraci index tlupy, ktere je dalsi v poradi v boji.
+            /// </summary>
+            /// <returns>int index bojove tlupy, ktera bude bojovat</returns>
+            int ZmenIndexTlupyNarade()
+            {
+                kteraTlupaJeNaRadeSUtokem += 1;
+                if (kteraTlupaJeNaRadeSUtokem >= bojoveTlupy.Length)
+                {
+                    kteraTlupaJeNaRadeSUtokem = 0;
+                }
+                return kteraTlupaJeNaRadeSUtokem;
             }
 
+            ///podle nastaveneho utocnika zjisti obrance a vrati indexy obrancu v poli int
             int[] KteraTlupaSeBrani()
             {
                 int[] kdoSeBrani = new int[bojoveTlupy.Length - 1];
                 int j = 0;
+                //pole kdoSeBrani se naplni indexy od 0 do bojoveTlupy.Length - 1, kdy se neulozi index te tlupy co aktualne utoci
                 for (int i = 0; i < bojoveTlupy.Length; i++)
                 {
                     if( i != kteraTlupaJeNaRadeSUtokem)
                     {
                         kdoSeBrani[j] = i;
-                        j += 1;
+                        j += 1; //posouva index pole kdo SeBrani pokud se hodnota ulozi
                     }
                 }
+
                 return kdoSeBrani;
             }
 
+            //Medoda do pole bojovaDvojice nasavi bojovniky v poradi takze: 0 = utocnik, 1 = obrance
             Bojovnik[] NastavUtocnikaAObrance()
             {
                 Bojovnik[] bojovaDvojice = new Bojovnik[2];
                 switch (kteraTlupaJeNaRadeSUtokem)
                 {
-                    case 0:
-                        bojovaDvojice[0] = tlupaRytiru.NactiBojovnika(tlupaRytiru.AktivniBojovnik);
-                        bojovaDvojice[1] = tlupaDraku.NactiBojovnika(tlupaDraku.AktivniBojovnik);
+                    case 0: // tlupa s indexem 0 v poli bojoveTlupy utoci
+                        bojovaDvojice[0] = bojoveTlupy[0].NactiBojovnika(bojoveTlupy[0].AktivniBojovnik);
+                        bojovaDvojice[1] = bojoveTlupy[1].NactiBojovnika(bojoveTlupy[1].AktivniBojovnik);
                         break;
-                    case 1:
-                        bojovaDvojice[0] = tlupaDraku.NactiBojovnika(tlupaDraku.AktivniBojovnik);
-                        bojovaDvojice[1] = tlupaRytiru.NactiBojovnika(tlupaRytiru.AktivniBojovnik);
+                    case 1: //tlupa s indexem 1 v poli bojoveTlupy utoci
+                        bojovaDvojice[0] = bojoveTlupy[1].NactiBojovnika(bojoveTlupy[1].AktivniBojovnik);
+                        bojovaDvojice[1] = bojoveTlupy[0].NactiBojovnika(bojoveTlupy[0].AktivniBojovnik);
                         break;
                 }
                 return bojovaDvojice;
             }
 
             /// <summary>
-            /// Metoda vraci index tlupy, ktere bude v dalsim kole bojovat. Medota pocita jen se dvema tlupama.
+            /// Nahodne vybere bojovniky pro jedno kolo boje z tlup v poli bojoveTlupy
             /// </summary>
-            /// <param name="budeProtiutok">pokud je protiutok True, index AktualniTlupyNaRade ne nemeni</param>
-            /// <param name="indexAktualniTlupyNaRade">index tlupy, ktera prave bojuje</param>
-            /// <returns>int index bojove tlupy, ktera bude bojovat</returns>
-            void ZmenIndexTlupyNarade()
+            /// <param souboj>objekt tridy Souboj</param>
+            void LosujBojovouNticiZtlup()
             {
-                if (!provedeSeProtiutok)
+                for (int i = 0; i < bojoveTlupy.Length; i++)
                 {
-                    kteraTlupaJeNaRadeSUtokem = ((-1*(kteraTlupaJeNaRadeSUtokem*2 - 1))+1)/2; //0,1 hodnota se prevedou na -1,1, prohodi se a pak se zas vrati na 0,1 
-                }
 
+                     bojoveTlupy[i].AktivniBojovnik = bojoveTlupy[i].VyberBojovnika();
+
+                }
+  
+            }
+
+            ///// <summary>
+            ///// Metoda vraci index tlupy, ktere bude v dalsim kole bojovat. Medota pocita jen se dvema tlupama.
+            ///// </summary>
+            ///// <returns>int index bojove tlupy, ktera bude bojovat</returns>
+            //void ZmenIndexTlupyNarade()
+            //{
+            //    if (!provedeSeProtiutok)
+            //    {
+            //        kteraTlupaJeNaRadeSUtokem += 1;
+            //            if (kteraTlupaJeNaRadeSUtokem > bojoveTlupy.Length)
+            //                {
+            //                    kteraTlupaJeNaRadeSUtokem = 0;
+            //                }
+            //    }
+
+            //}
+
+            bool VymrelaTlupaSbojoveDvojiceTlup()
+            {
+                foreach (Tlupa item in bojoveTlupy)
+                {
+                    if (item.PocetZivychBojovniku <= 0) // pokud jeste zije nejaky drak, vybere se nahodne novy
+                    {
+                        Console.WriteLine($"Konec. Tlupa {item.Jmeno} vymrela");
+                        Console.ReadLine();
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            /// <summary>
+            /// metoda nahodne vybira zacinajici tlupu
+            /// </summary>
+            /// <param name="pocetTlup"></param>
+            /// <returns>intex tlupy int(0 - pocetTlup-1)</returns>
+            int LosujKteraTlupaZacina(int pocetTlup = 2)
+            {
+                int kdoJeNaRade;
+                Random hodKostkou = new Random(); //náhodne losuje kdo zacne, napr: 0- prvni tah ma rytir, 1- zacina drak
+                kdoJeNaRade = hodKostkou.Next(pocetTlup);
+                return kdoJeNaRade;
+            }
+
+
+            /// <summary>
+            /// Vytiskne v konzoli uvodni informace ke hre
+            /// </summary>
+            void UvedHru()
+            {
+                Console.WriteLine("-------------------------------------------------------------");
+                Console.WriteLine("Pravidla:\n" + "1) Utoci jeden drak na jednoho rytire a naopak. V utoku se stridaji. Silu utoku redukuje obrane cislo napadeneho\n" +
+                    "2) Napadeny bojovnik muze vykonat protiutok podle sily obratnosti. Protiutok je miren na utocnika.\n" +
+                        "Pokud branici se bojovnik umrel je nahodne vybran nahradnik." +
+                        "3) Hra konci az vymre jedna z bojovych skupin. Ta prezivsi vyhrava.");
+
+                Console.WriteLine("=============================================================");
             }
         }
-        /// <summary>
-        /// metoda nahodne vybira zacinajici tlupu
-        /// </summary>
-        /// <param name="pocetTlup"></param>
-        /// <returns>intex tlupy int(0 - pocetTlup-1)</returns>
-        private static int LosujKteraTlupaZacina(int pocetTlup = 2)
-        {
-            int kdoJeNaRade;
-            Random hodKostkou = new Random(); //náhodne losuje kdo zacne, napr: 0- prvni tah ma rytir, 1- zacina drak
-            kdoJeNaRade = hodKostkou.Next(pocetTlup);
-            return kdoJeNaRade;
-        }
 
-        /// <summary>
-        /// Nahodne vybere s kazde ze dvou ruznych bojovnych tlup tridy Tlupa jednoho soupere tridy Ritir nebo Drak
-        /// </summary>
-        /// <param name="hodKostkou">instance Random</param>
-        /// <param name="tlupaDraku">Tlupa obsahujici bojovniky tridy Drak</param>
-        /// <param name="tlupaRytiru">Tlupa obsahujici bojovniky tridy Ririr</param>
-        /// <param name="i_drak">int index vylosovaneho draka z Tlupy draku</param>
-        /// <param name="i_rytir">int index vylosovaneho ritire z Tlupy ritiru</param>
-        private static void LosujBojovouDvojiciZtlup(Tlupa[] bojoveTlupy)
+        private static bool OverNarokNaProtiutokPodleTypuNapadeni(bool provedeSeProtiutok, int pocetUtoku, int i)
         {
-            //TODO predelat na for
-            bojoveTlupy[0].AktivniBojovnik = bojoveTlupy[0].VyberBojovnika();
-            bojoveTlupy[1].AktivniBojovnik = bojoveTlupy[1].VyberBojovnika();
-        }
-
-        /// <summary>
-        /// Vytiskne v konzoli uvodni informace ke hre
-        /// </summary>
-        private static void UvedHru()
-        {
-            Console.WriteLine("-------------------------------------------------------------");
-            Console.WriteLine("Pravidla:\n" + "1) Utoci jeden drak na jednoho rytire a naopak. V utoku se stridaji. Silu utoku redukuje obrane cislo napadeneho\n" +
-                "2) Napadeny bojovnik muze vykonat protiutok podle sily obratnosti. Protiutok je miren na utocnika.\n" +
-                    "Pokud branici se bojovnik umrel je nahodne vybran nahradnik." +
-                    "3) Hra konci az vymre jedna z bojovych skupin. Ta prezivsi vyhrava.");
-
-            Console.WriteLine("=============================================================");
-        }
-
-        private static bool UkonciHruKdyzVymreNejakaTlupa(Tlupa[] tlupy)
-        {
-            foreach (Tlupa item in tlupy)
-            { 
-                if (item.PocetZivychBojovniku <= 0) // pokud jeste zije nejaky drak, vybere se nahodne novy
-                {
-                    Console.WriteLine($"Konec. Tlupa {item.Jmeno} vymrela");
-                    Console.ReadLine();
-                    return true;
-                }
+            if (i < pocetUtoku - 1) //nelze narokovat protiutok pri odvete
+            {
+                provedeSeProtiutok = false;
             }
-            return false;
+
+            return provedeSeProtiutok;
         }
 
+        private static int SpoctiPocetUtoku(Bojovnik[] dvojiceBojovniku, bool provedeSeProtiutok)
+        {
+            int pocetUtoku;
+            if (provedeSeProtiutok) //napadena strana z minuleho kola ma dva utoky pokud ma provedeSeProtiutok true
+            {
+                Console.WriteLine($"Napadeny bojovnik {dvojiceBojovniku[0].Jmeno} vraci uder. Bude útočit dvakrát.");
+                pocetUtoku = 2;
+                provedeSeProtiutok = false;
+            }
+            else //bez protiutoku provede se jen jeden utok
+            {
+                pocetUtoku = 1;
+            }
+
+            return pocetUtoku;
+        }
     } 
 }
 

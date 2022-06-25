@@ -228,10 +228,11 @@ namespace RytiriADraci
         /// </summary>
         /// <param name="utok">int sila utoku</param>
         /// <returns>true pokud probehne protiutok</returns>
-        public bool BudeProtiUtok(int utok) //jde rytir do protiutoku? Dostane pripadne utok navic
+        public bool JeSchopenProtiutoku(int utok) //jde rytir do protiutoku? Dostane pripadne utok navic
         {
-            if (utok < Obratnost)
-            { Console.WriteLine(Jmeno + " jde do protiutoku. Rytiri maji tah navic."); }
+            //if (utok < Obratnost)
+            //{ Console.WriteLine(Jmeno + " jde do protiutoku. Rytiri maji tah navic."); }
+            //proti utok je ovlivnen dalsimi pravidli, ktere tato metoda nezohlednuje
 
             return utok < Obratnost;
         }

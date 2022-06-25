@@ -8,7 +8,7 @@ namespace RytiriADraci
 {
     public class Tlupa
     {
-        Bojovnik[] bojovnici;
+        public Bojovnik[] Bojovnici;
         public int PocetZivychBojovniku;
         public int AktivniBojovnik; //bojovnik, ktery prave bojuje
         Random kostka;
@@ -23,7 +23,7 @@ namespace RytiriADraci
 
         public Tlupa(int pocetBojovniku, string jmeno)
         {
-            bojovnici = new Bojovnik[pocetBojovniku];
+            Bojovnici = new Bojovnik[pocetBojovniku];
             PocetZivychBojovniku = pocetBojovniku;
             kostka = new Random();
             AktivniBojovnik = VyberBojovnika();
@@ -45,11 +45,11 @@ namespace RytiriADraci
         /// <param name="bojovnik"></param>
         public void PridejBojovnika(Bojovnik bojovnik)
         {
-            for (int i = 0; i < bojovnici.Length; i++)
+            for (int i = 0; i < Bojovnici.Length; i++)
             {
-                if (bojovnici[i] == null)
+                if (Bojovnici[i] == null)
                 {
-                    bojovnici[i] = bojovnik;
+                    Bojovnici[i] = bojovnik;
                     break;
                 }
             }
@@ -61,7 +61,7 @@ namespace RytiriADraci
         /// <returns></returns>
         public Bojovnik NactiBojovnika(int index)
         {
-            return bojovnici[index];
+            return Bojovnici[index];
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace RytiriADraci
         /// <param name="index">index bojovnika v poli bojovnici</param>
         public void OdeberBojovnika(int index)
         {
-            bojovnici[index] = null;
+            Bojovnici[index] = null;
             return;
         }
 
@@ -79,10 +79,9 @@ namespace RytiriADraci
         /// </summary>
         void ZrevidujZiveBojovniky()
         {
-            PocetZivychBojovniku = bojovnici.Where(bojovnik => bojovnik != null).Count();
-            Bojovnik[] tlupaZivych = bojovnici.Where(bojovnik => bojovnik != null).ToArray();
-            tlupaZivych.OrderBy(tlupaZivych => tlupaZivych.PocetZivotu).ToArray();
-            bojovnici = tlupaZivych; //seradi bojovniky podle zivotu
+            PocetZivychBojovniku = Bojovnici.Where(bojovnik => bojovnik != null).Count();
+            Bojovnik[] tlupaZivych = Bojovnici.Select(bojovnik => bojovnik).Where(bojovnik => bojovnik != null).ToArray();
+            Bojovnici = tlupaZivych.ToArray();
 
         }
 
@@ -92,10 +91,14 @@ namespace RytiriADraci
         /// <param name="i_bojovnik">index bojovnika v poli Tlupa.bojovnici</param>
         public void RedukujTlupuOmrtve(int i_bojovnik)
         {
-            if (!bojovnici[i_bojovnik].MuzuBojovat())
+            if (!Bojovnici[i_bojovnik].MuzuBojovat())
             {
                 OdeberBojovnika(i_bojovnik);
                 ZrevidujZiveBojovniky();
+                if (PocetZivychBojovniku > 0)
+                {
+                    AktivniBojovnik = VyberBojovnika(); //nastavi nahradnika
+                }
             }
         }
 
@@ -106,9 +109,9 @@ namespace RytiriADraci
         {
             for (int j = 0; j < PocetZivychBojovniku; j++)
             {
-                string typInstance = bojovnici[j].GetType().ToString();  //GetType vrati nazev tridy vcetne namespace: RytiriADraci.Drak
+                string typInstance = Bojovnici[j].GetType().ToString();  //GetType vrati nazev tridy vcetne namespace: RytiriADraci.Drak
                 int poziceTecky = typInstance.IndexOf('.'); //najde pozici tecky
-                bojovnici[j].PredstavSe(typInstance.Substring(poziceTecky + 1)); //Substring vybere s textu jen Drak, Rytir nebo jinou postavu co bude mit tridu
+                Bojovnici[j].PredstavSe(typInstance.Substring(poziceTecky + 1)); //Substring vybere s textu jen Drak, Rytir nebo jinou postavu co bude mit tridu
             }
         }
 
